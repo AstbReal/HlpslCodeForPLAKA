@@ -1,3 +1,4 @@
+% Role For User
 role user(Ui,Dj,Ser:agent,SKuts:symmetric_key,H:hash_func,SND,RCV:channel(dy))
 played_by Ui
 def=
@@ -27,6 +28,7 @@ State' := 4 /\ T5' := new() /\ K1' := new()  /\ M8' := xor(K1',H(Rjnew.T5')) /\ 
             /\ request(Ser,Ui,server_user_t4,T4')
 end role
 
+% Role For Drone
 role drone(Ui,Dj,Ser:agent,SKdts:symmetric_key,H,P:hash_func,SND,RCV:channel(dy))
 played_by Dj
 def=
@@ -51,6 +53,7 @@ State' := 3 /\ T2' := new() /\ Rjnew' := P(Cjnew') /\ M1' := xor(Rjnew',H(Rj.T2'
 State' := 4 /\ SKji' := H(K1'.Rjnew) /\ request(Ser,Dj,server_drone_t4,T4') /\ request(Ui,Dj,user_drone_t5,T5')
 end role
 
+% Role For Server
 role server(Ui,Dj,Ser:agent,SKuts,SKdts:symmetric_key,H:hash_func,SND,RCV:channel(dy))
 played_by Ser
 def=
@@ -82,6 +85,7 @@ composition
         /\ server(Ui,Dj,Ser,SKuts,SKdts,H,SD3,RV3)
 end role
 
+%  The role of the session, goal and environment
 role environment()
 def=
     const ui,dj,ser:agent,skuts,skdts:symmetric_key,h,p:hash_func,sp1,sp2,sp3,sp4,sp5,sp7,sp7,sp8,sp9,user_drone_t1,drone_user_t2,user_server_t3,server_user_t4,server_drone_t4,user_drone_t5,user_server_r1:protocol_id
