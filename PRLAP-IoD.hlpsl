@@ -55,7 +55,7 @@ State' := 4 /\ T5' := new() /\ K1' := new()  /\ M8' := xor(K1',H(Rjnew.T5')) /\ 
             /\ request(Ser,Ui,server_user_t4,T4')
 end role
 
-% Role For Server
+% Role For TA(server)
 role server(Ui,Dj,Ser:agent,SKuts,SKdts:symmetric_key,H,C:hash_func,SND,RCV:channel(dy))
 played_by Ser
 def=
