@@ -41,7 +41,7 @@ State' := 1 /\ IDu' := new() /\ PWu' := new() /\ Ra' := new() /\ HIDu' := H(IDu'
             /\ secret({IDu'.PWu'.Ra'},sp2,{Ui})
 2.State = 1 /\ RCV({xor(H(HIDu'.Xser'),HPWu').A1'.HDIDj'.COUNTER}_SKuts) =|>
 %User authentication phase
-State' := 1 /\ T1' := new() /\ Cjnew' := new() /\ A1_1' := xor(xor(A1',HPWu),T1') 
+State' := 2 /\ T1' := new() /\ Cjnew' := new() /\ A1_1' := xor(xor(A1',HPWu),T1') 
             /\ secret({Cjnew'},sp3,{Ui,Dj}) /\ SND(A1_1'.Cjnew'.T1') /\ witness(Ui,Dj,user_drone_t1,T1')
 3.State = 2 /\ RCV(xor(Rjnew',H(Rj'.T2)).H(HIDu.Rj'.T2').T2') =|>
 State' := 3 /\ R1' := new() /\ T3' := new() /\ Kgs' := H(HIDu.Xser)
@@ -79,6 +79,7 @@ State' := 2 /\ T4' := new() /\ M5' := xor(H(Rj'.T2'),H(R1'.T4'))
             /\ request(Ui,Ser,user_server_r1,R1')
 end role
 
+% Role For Session
 role session(Ui,Dj,Ser:agent,SKuts,SKdts:symmetric_key,H,P,C:hash_func)
 def=
 local SD1,RV1,SD2,RV2,SD3,RV3:channel(dy)
