@@ -5,30 +5,25 @@ def=
 local State : nat,
             DIDj,Rb,HDIDj,HIDu,GIDi,Cj,Cjnew,Rj,Rjnew:text,
             T1,K1,T2,T4,T5:text,
-            A1_1,M1,M2,M7,M8,SKji:text
-const secD1,serDUS2,serDU1,user_drone_t1,drone_user_t2,user_drone_t5,drone_ser_m7:protocol_id
+            A1_1,M1,M2,M7,M8,SK:text
+const secdu1,secdu2,drone_ser_m7:protocol_id
 init State := 0
 transition  
-1.State = 0 /\ RCV(start) =|>
+0.State = 0 /\ RCV(start) =|>
 %Drone registration phase
-State' := 2 /\ DIDj' := new() /\ Rb' := new() /\ HDIDj' := H(DIDj'.Rb')
+State' := 1 /\ DIDj' := new() /\ Rb' := new() /\ HDIDj' := H(DIDj'.Rb')
             /\ SND({HDIDj'}_SKdts) 
-            /\ secret({DIDj,Rb},secD1,{Dj})
-2.State = 2 /\ RCV({Cj'.GIDi'}_SKdts) =|>
+1.State = 1 /\ RCV({Cj'.GIDi'}_SKdts) =|>
 State' := 4 /\ Rj' := P(Cj') /\ SND({Rj'}_SKdts)
-            /\ secret(GIDi,serDUS2,{Dj,Ui,Ser})
-3.State = 2 /\ RCV(A1_1'.Cjnew'.T1') =|>
+3.State = 4 /\ RCV(A1_1'.Cjnew'.T1') =|>
 %Drone authentication phase
 State' := 7 /\ T2' := new() /\ HIDu' := xor(xor(A1_1',HDIDj),T1') 
             /\ Rjnew' := P(Cjnew') /\ M1' := xor(Rjnew',H(Rj.T2'))
             /\ M2' := H(HIDu'.Rj.T2') /\ SND(M1'.M2'.T2')
-            /\ request(Dj,Ui,user_drone_t1,T1') 
-            /\ witness(Dj,Ui,drone_user_t2,T2')
-5.State = 7 /\ RCV(M7'.M8'.T4'.T5') =|>
+7.State = 7 /\ RCV(M7'.M8'.T4'.T5') =|>
 State' := 11 /\ M7':= H(Rj.T2.T4') /\ K1':= xor(M8',H(Rjnew.T5'))
-            /\ SKji' := H(K1'.Rjnew) /\ secret({K1'},serDU1,{Ui.Dj})
-            /\ request(Dj,Ser,user_drone_t5,T5')
-            /\ request(Dj,Ser,drone_ser_m7,M7')
+            /\ SK' := H(K1'.Rjnew) /\ secret(K1',secdu1,{Ui.Dj})
+            /\ request(Dj,Ser,drone_ser_m7,M7') /\ secret(SK',secdu2,{Ui.Dj})
 end role
 
 % Role For User
@@ -37,36 +32,33 @@ played_by Ui
 def=
 local State : nat,
                 IDu,PWu,HIDu,HPWu,GIDi,COUNTER,HDIDj,Cjnew,Rjnew,Wi:text,
-                A1,A1_1,M1,M2,M3,M4,M5,M6,M7,M8,SKij:text,
+                A1,A1_1,M1,M2,M3,M4,M5,M6,M7,M8,SK:text,
                 Ra,T1,K1,T2,R1,T3,Kgs,T4,T5:text
-const secU1,serUS1,secDUS1,serDUS2,user_drone_t1,user_server_t3,user_server_m4,user_drone_t5,drone_user_t2,user_server_m6,user_server_t4:protocol_id
+const serus1,secdu2,user_server_m4,user_server_m6:protocol_id
 init State := 0
 transition
-1.State = 0 /\ RCV(start) =|>
+0.State = 0 /\ RCV(start) =|>
 % User registration phase
-State' := 2 /\ IDu' := new() /\ PWu' := new() /\ Ra' := new()
+State' := 1 /\ IDu' := new() /\ PWu' := new() /\ Ra' := new()
             /\ HIDu' := H(IDu'.Ra') /\ HPWu' := H(PWu'.Ra')
-            /\ SND({HIDu'.HPWu'}_SKuts) /\ secret({IDu,PWu,Ra},secU1,{Ui})
-3.State = 2 /\ RCV({Wi'.A1'.HDIDj'.COUNTER}_SKuts) =|>
+            /\ SND({HIDu'.HPWu'}_SKuts)
+1.State = 1 /\ RCV({Wi'.A1'.HDIDj'.COUNTER'}_SKuts) =|>
 %User authentication phase
 State' := 6 /\ T1' := new() /\ Cjnew' := new()
             /\ A1_1' := xor(xor(A1',HPWu),T1') /\ SND(A1_1'.Cjnew'.T1')
-            /\ witness(Ui,Dj,user_drone_t1,T1') /\ secret(COUNTER,serUS1,{Ui,Ser})
-            /\ secret(HDIDj,secDUS1,{Dj,Ui,Ser}) 
-4.State = 6 /\ RCV(M1'.M2'.T2') =|>
+            /\ secret(COUNTER',serus1,{Ui,Ser})
+6.State = 6 /\ RCV(M1'.M2'.T2') =|>
 State' := 8 /\ R1' := new() /\ T3' := new() /\ GIDi' := new() /\ Kgs' := xor(Wi,HPWu)
             /\ M3':= xor(xor(C(R1'.HDIDj),Kgs'),M2')
-            /\ M4':= H(HDIDj.GIDi.R1'.T3')
-            /\ secret(GIDi,serDUS2,{Dj,Ui,Ser})
-            /\ SND(M3'.M4'.HIDu.T2'.T3') /\ witness(Ui,Ser,user_server_t3,T3') 
-            /\ witness(Ui,Ser,user_server_m4,M4') /\ request(Ui,Dj,drone_user_t2,T2')
-6.State = 8 /\ RCV(M5',M6',M7'.T4') =|>
+            /\ M4':= H(HDIDj.GIDi'.R1'.T3')
+            /\ SND(M3'.M4'.HIDu.T2'.T3')  
+            /\ witness(Ui,Ser,user_server_m4,M4') 
+8.State = 8 /\ RCV(M5',M6',M7'.T4') =|>
 State' := 10 /\ M6' := H(Kgs.R1.T4') /\ T5' := new() /\ K1' := new()
             /\ request(Ui,Ser,user_server_m6,M6') 
             /\ Rjnew' := xor(M1,xor(M5',H(R1.T4')))
-            /\ M8' := xor(K1',H(Rjnew'.T5')) /\ SKij' := H(K1'.Rjnew')
-            /\ SND(M7'.M8'.T4'.T5') /\ witness(Ui,Dj,user_drone_t5,T5') 
-            /\ request(Ui,Ser,user_server_t4,T4')
+            /\ M8' := xor(K1',H(Rjnew'.T5')) /\ SK' := H(K1'.Rjnew')
+            /\ SND(M7'.M8'.T4'.T5') /\ secret(SK',secdu2,{Ui.Dj})
 end role
 
 % Role For TA(server)
@@ -76,28 +68,25 @@ def=
 local State : nat,
             HIDu,HPWu,GIDi,HDIDj,Cj,Rj,A1,M3,M4,M5,M6,M7:text,
             Xser,COUNTER,Kgs,Wi,R1,T2,T3,T4:text
-const secDUS1,serDUS2,secDS1,serUS2,serS1,user_server_m4,user_server_t3,user_server_t4,user_server_m6,drone_ser_m7:protocol_id
-init State := 1
+const secds1,serus2,user_server_m4,user_server_m6,drone_ser_m7:protocol_id
+init State := 2
 transition
-1.State = 1 /\ RCV({HIDu'.HPWu'}_SKuts,{HDIDj'}_SKdts) =|>
+2.State = 2 /\ RCV({HIDu'.HPWu'}_SKuts,{HDIDj'}_SKdts) =|>
 %registration phase
 State' := 3 /\ Xser' := new() /\ COUNTER' := new() /\ GIDi' := new()
             /\ Kgs' := H(HIDu'.Xser') /\ Wi' := xor(Kgs',HPWu')
             /\ Cj' := H(HDIDj'.Xser')
             /\ A1' := xor(xor(C(Cj'.HIDu'),HDIDj'),HPWu')
-            /\ secret(HDIDj,secDUS1,{Dj,Ui,Ser}) 
-            /\ secret(GIDi,serDUS2,{Dj,Ui,Ser}) /\ secret(Xser,serS1,{Ser})
             /\ SND({Wi'.A1'.HDIDj'.COUNTER'}_SKuts,{Cj'.GIDi'}_SKdts)
-2.State = 3 /\ RCV({Rj'}_SKdts) =|>
-State' := 5 /\ secret(Rj,secDS1,{Dj,Ser})
-7.State = 5 /\ RCV(M3'.M4'.HIDu.T2'.T3') =|>
+3.State = 3 /\ RCV({Rj'}_SKdts) =|>
+State' := 5 /\ secret(Rj',secds1,{Dj,Ser})
+5.State = 5 /\ RCV(M3'.M4'.HIDu.T2'.T3') =|>
 %authentication phase
 State' := 9 /\ T4' := new() /\ R1' := xor(M3',xor(Kgs,H(HIDu.Rj.T2')))
-            /\ secret({R1'},serUS2,{Ui,Ser}) /\ M4' := H(HDIDj.GIDi.R1'.T3')
+            /\ secret(R1',serus2,{Ui,Ser}) /\ M4' := H(HDIDj.GIDi.R1'.T3')
             /\ request(Ser,Ui,user_server_m4,M4') 
             /\ M5' := xor(H(Rj.T2'),H(R1'.T4')) /\ M6' := H(Kgs.R1'.T4')
             /\ M7' := H(Rj.T2'.T4') /\ SND(M5'.M6'.M7'.T4')
-            /\ witness(Ser,Ui,user_server_t4,T4') /\ request(Ser,Ui,user_server_t3,T3')
             /\ witness(Ser,Ui,user_server_m6,M6') /\ witness(Ser,Dj,drone_ser_m7,M7')
 end role
 
@@ -115,8 +104,8 @@ end role
 role environment()
 def=
 const ui,dj,ser:agent,skuts,skdts,skids,skuis:symmetric_key,
-      h,p,c:hash_func,t1,t2,t3,t4,t5,m1,m2,m3,m4,m5,m6,m7,m8,hidu,a1,cjnew,gidi,hdidj,cj,rj,rjnew,k1,r1:text,
-      secd1,secu1,secdus1,secds1,serdus2,serdu1,serus1,serus2,sers1,user_drone_t1,drone_user_t2,user_server_t3,user_server_t4,user_drone_t5,drone_ser_m7,user_server_m6,user_server_m4:protocol_id
+      h,p,c:hash_func,t1,t2,t3,t4,t5,m1,m2,m3,m4,m5,m6,m7,m8,hidu,a1,cjnew:text,
+      secds1,secdu1,secdu2,serus1,serus2,drone_ser_m7,user_server_m6,user_server_m4:protocol_id
 intruder_knowledge = {ui,dj,ser,skids,skuis,h,p,c,t1,t2,t3,t4,t5,m1,m2,m3,m4,m5,m6,m7,m8,hidu,a1,cjnew}
 composition
         session(ui,dj,ser,skuts,skdts,h,p,c)
@@ -125,8 +114,13 @@ composition
 end role
 
 goal
-secrecy_of secD1,secU1,secDUS1,secDS1,serDUS2,serDU1,serUS1,serUS2,serS1
-authentication_on user_drone_t1,drone_user_t2,user_server_t3,user_server_t4,user_drone_t5,drone_ser_m7,user_server_m6
+secrecy_of secds1
+secrecy_of secdu1
+secrecy_of secdu2
+secrecy_of serus1
+secrecy_of serus2
+authentication_on drone_ser_m7
+authentication_on user_server_m6
 authentication_on user_server_m4
 end goal
 
